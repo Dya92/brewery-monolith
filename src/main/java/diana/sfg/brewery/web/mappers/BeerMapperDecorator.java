@@ -1,0 +1,33 @@
+package diana.sfg.brewery.web.mappers;
+
+import diana.sfg.brewery.domain.Beer;
+import diana.sfg.brewery.domain.BeerInventory;
+import diana.sfg.brewery.web.model.BeerDto;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+public abstract class BeerMapperDecorator implements BeerMapper{
+
+    private BeerMapper beerMapper;
+
+    @Autowired
+    @Qualifier("delegate")
+    public void setBeerMapper(BeerMapper beerMapper) {
+        this.beerMapper = beerMapper;
+    }
+
+    @Override
+    public BeerDto beerToBeerDto(Beer beer) {
+
+        BeerDto dto = beerMapper.beerToBeerDto(beer);
+
+        if(beer.getBeerInventory() != null && beer.getBeerInventory().size() > 0) {
+            dto.setQuantityOnHand(beer.getBeerInventory()
+                    .stream().map(BeerInventory::getQuantityOnHand)
+                    .reduce(0, Integer::sum));
+
+        }
+
+        return dto;
+    }
+}
